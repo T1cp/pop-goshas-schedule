@@ -3,10 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Epic OS V4.1 - Fixed & Ultra</title>
-    <!-- Chart.js -->
+    <title>Epic OS V3 - Synced</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
@@ -29,65 +27,83 @@
             --glass-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; transition: 0.3s; padding-bottom: 80px; }
+        body { background-color: var(--bg-color); color: var(--text-main); overflow-x: hidden; transition: background-color 0.3s, color 0.3s; }
 
-        /* --- Header & Layout (V3 Style) --- */
+        /* Header & Profile Switcher */
         header { 
             background: var(--card-bg); padding: 15px 30px; box-shadow: var(--glass-shadow); 
             display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100;
-            border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 10px;
+            border-bottom: 1px solid var(--border-color);
         }
         .nav-tabs { display: flex; gap: 8px; }
         .tab-btn { padding: 10px 18px; border: none; background: transparent; font-size: 15px; font-weight: 600; color: var(--text-muted); cursor: pointer; border-radius: 8px; transition: 0.3s; }
         .tab-btn:hover { background: var(--bg-color); color: var(--primary); }
         .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
-
-        .container { padding: 30px; max-width: 1600px; margin: 0 auto; }
-        .page { display: none; animation: fadeIn 0.4s ease forwards; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
-
-        .card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--glass-shadow); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border-color); transition: 0.3s; }
-        .card-header { background: transparent; color: var(--text-main); padding-bottom: 15px; margin-bottom: 20px; font-weight: 700; font-size: 18px; border-bottom: 2px solid var(--bg-color); display: flex; justify-content: space-between; align-items: center; }
-
-        /* --- PFP & Controls --- */
-        .profile-switcher { display: flex; align-items: center; gap: 10px; background: var(--bg-color); padding: 6px; border-radius: 40px; border: 1px solid var(--border-color); }
-        .pfp-btn { width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; object-fit: cover; transition: 0.2s; }
-        .pfp-btn:hover { transform: scale(1.1); }
-        .pfp-btn.active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
-
-        .controls { display: flex; align-items: center; gap: 12px; }
-        .icon-btn { padding: 8px; border-radius: 50%; background: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-main); cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; }
         
+        .profile-switcher { display: flex; align-items: center; gap: 5px; background: var(--bg-color); padding: 6px; border-radius: 12px; border: 1px solid var(--border-color); }
+        .profile-btn { padding: 8px 16px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; background: transparent; color: var(--text-muted); transition: 0.3s; }
+        .profile-btn.active { background: var(--card-bg); color: var(--primary); box-shadow: 0 2px 8px rgba(0,0,0,0.1); border: 1px solid var(--primary-light); }
+
+        /* Live Clock Widget */
         .clock-widget {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             background: linear-gradient(135deg, var(--primary-dark), var(--primary-light));
-            color: white; padding: 6px 12px; border-radius: 10px; font-weight: 700;
-            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); min-width: 140px; text-align: center;
+            color: white; padding: 8px 16px; border-radius: 10px; font-weight: 700;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); min-width: 160px; text-align: center;
         }
-        .clock-time { font-size: 16px; } .clock-date { font-size: 10px; opacity: 0.9; text-transform: uppercase; }
+        .clock-time { font-size: 18px; letter-spacing: 1px; }
+        .clock-date { font-size: 11px; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        /* --- Gamification --- */
+        .controls { display: flex; align-items: center; gap: 12px; }
+        .controls button, .controls input[type="month"] { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; font-weight: 600; background: var(--card-bg); color: var(--text-main); transition: 0.2s; }
+        .controls button:hover { background: var(--bg-color); }
+        
+        /* Gamification */
         .level-badge { display: flex; align-items: center; gap: 10px; background: var(--bg-color); padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border-color); }
-        .xp-bar-container { width: 80px; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; }
+        .xp-bar-container { width: 100px; height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden; }
         .xp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--xp-color), #f472b6); width: 0%; transition: width 0.5s ease-out; }
+        .level-text { font-weight: 800; color: var(--xp-color); font-size: 14px; }
 
-        /* --- Inputs & Tables --- */
+        /* Layout & Cards */
+        .container { padding: 30px; max-width: 1600px; margin: 0 auto; }
+        .page { display: none; } .page.active { display: block; animation: fadeIn 0.4s ease forwards; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .card { background: var(--card-bg); border-radius: 16px; box-shadow: var(--glass-shadow); padding: 24px; margin-bottom: 24px; border: 1px solid var(--border-color); transition: 0.3s; }
+        .card:hover { box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.1); }
+        .card-header { background: transparent; color: var(--text-main); padding-bottom: 15px; margin-bottom: 20px; font-weight: 700; font-size: 18px; border-bottom: 2px solid var(--bg-color); display: flex; justify-content: space-between; align-items: center; }
+
+        /* Inputs & Checkboxes */
+        .btn-icon { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 6px; border-radius: 6px; transition: 0.2s; }
+        .btn-icon:hover { color: var(--danger); background: rgba(239, 68, 68, 0.1); }
+        .btn-add { width: 100%; padding: 10px; background: var(--bg-color); border: 1px dashed var(--border-color); border-radius: 8px; cursor: pointer; color: var(--text-muted); margin-top: 15px; font-weight: 600; transition: 0.2s; }
+        .btn-add:hover { border-color: var(--primary); color: var(--primary); background: rgba(99, 102, 241, 0.05); }
+        
+        /* The Missed System Checkboxes */
         input[type="checkbox"] { appearance: none; width: 20px; height: 20px; border: 2px solid var(--border-color); border-radius: 6px; cursor: pointer; position: relative; transition: 0.2s; background: var(--card-bg); }
         input[type="checkbox"]:checked { background-color: var(--success); border-color: var(--success); }
         input[type="checkbox"]:checked::after { content: '\f00c'; font-family: 'FontAwesome'; color: white; font-size: 12px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        input[type="checkbox"].missed { border-color: var(--danger); background-color: rgba(239, 68, 68, 0.15); }
+        
+        /* MISSED STYLING */
+        input[type="checkbox"].missed { border-color: var(--danger); background-color: rgba(239, 68, 68, 0.15); animation: pulseRed 2s infinite; }
+        @keyframes pulseRed { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
         .missed-text { color: var(--danger) !important; font-weight: 600; }
 
-        .btn-add { width: 100%; padding: 10px; background: var(--bg-color); border: 1px dashed var(--border-color); border-radius: 8px; cursor: pointer; color: var(--text-muted); margin-top: 15px; font-weight: 600; transition: 0.2s; }
-        .btn-add:hover { border-color: var(--primary); color: var(--primary); background: rgba(99, 102, 241, 0.05); }
-
-        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .data-table th, .data-table td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
-        .data-table th { background: var(--bg-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 12px; }
-        .editable { padding: 4px; border-radius: 4px; border: 1px solid transparent; min-width: 30px; display: inline-block; transition: 0.2s; }
+        .editable { padding: 6px; border-radius: 6px; border: 1px solid transparent; min-width: 30px; display: inline-block; transition: 0.2s; }
         .editable:hover, .editable:focus { border-color: var(--primary); background: var(--bg-color); outline: none; }
 
+        /* Tables & Grids */
+        .data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .data-table th, .data-table td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .data-table th { background: var(--bg-color); color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        .data-table tr:hover { background: rgba(0,0,0,0.01); }
+        
+        .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; border: none; outline: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
+        .s-not-started { background: rgba(245, 158, 11, 0.15); color: var(--warning); } 
+        .s-in-progress { background: rgba(99, 102, 241, 0.15); color: var(--primary); } 
+        .s-done { background: rgba(34, 197, 94, 0.15); color: var(--success); }
+        .s-overdue { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid var(--danger); }
+        
         .weekly-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 15px; }
         .day-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; display: flex; flex-direction: column; overflow: hidden; }
         .day-header { background: var(--bg-color); color: var(--text-main); text-align: center; padding: 12px; font-weight: 700; border-bottom: 1px solid var(--border-color); }
@@ -95,91 +111,69 @@
         .task-list-mini { list-style: none; font-size: 13px; padding: 12px; flex-grow: 1; }
         .task-list-mini li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--bg-color); gap: 8px; }
         .task-list-mini li.done .task-text { text-decoration: line-through; color: var(--text-muted); }
+        .task-text { flex-grow: 1; word-break: break-word; }
 
-        /* --- Chat & Embeds (New) --- */
-        .chat-btn-float { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; box-shadow: 0 10px 20px var(--glass-shadow); z-index: 200; transition: 0.3s; }
-        .chat-btn-float:hover { transform: scale(1.1); }
-        
-        .chat-window { position: fixed; bottom: 90px; right: 20px; width: 350px; height: 450px; background: var(--card-bg); border-radius: 16px; border: 1px solid var(--border-color); box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: none; flex-direction: column; z-index: 200; overflow: hidden; }
-        .chat-window.open { display: flex; animation: fadeIn 0.3s; }
-        .chat-header { background: var(--primary); color: white; padding: 12px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-        .chat-body { flex-grow: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: var(--bg-color); }
-        .chat-input-area { padding: 10px; background: var(--card-bg); border-top: 1px solid var(--border-color); display: flex; gap: 8px; }
-        .chat-input { flex-grow: 1; border: 1px solid var(--border-color); padding: 8px; border-radius: 20px; background: var(--bg-color); color: var(--text-main); }
-
-        .msg { padding: 8px 12px; border-radius: 12px; max-width: 85%; font-size: 13px; line-height: 1.4; word-wrap: break-word; }
-        .msg.me { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
-        .msg.them { align-self: flex-start; background: var(--card-bg); border: 1px solid var(--border-color); border-bottom-left-radius: 2px; }
-        .msg img { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; }
-        .msg iframe { width: 100%; aspect-ratio: 16/9; border-radius: 8px; border: none; margin-top: 5px; }
-
-        /* --- Mobile Responsive --- */
-        @media (max-width: 768px) {
-            .weekly-grid { grid-template-columns: 1fr; }
-            header { flex-direction: column; align-items: stretch; gap: 15px; }
-            .nav-tabs { justify-content: center; flex-wrap: wrap; }
-            .profile-switcher, .controls { justify-content: center; }
-            .chat-window { width: 90%; right: 5%; bottom: 85px; }
-        }
-
-        /* --- Finances --- */
+        /* Finances */
         .finance-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 24px; }
-        .fin-box { background: var(--bg-color); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; }
-        .fin-box .val { font-size: 24px; font-weight: 800; color: var(--text-main); }
+        .fin-box { background: var(--bg-color); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; }
+        .fin-box h3 { font-size: 13px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+        .fin-box .val { font-size: 28px; font-weight: 800; color: var(--text-main); }
         .val.positive { color: var(--success); } .val.negative { color: var(--danger); }
-        @media (max-width: 768px) { .finance-summary { grid-template-columns: 1fr 1fr; } }
+
+        .savings-goal-container { background: var(--bg-color); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 24px; }
+        .savings-bar-bg { width: 100%; height: 12px; background: var(--border-color); border-radius: 6px; overflow: hidden; margin-top: 10px; }
+        .savings-bar-fill { height: 100%; background: linear-gradient(90deg, var(--success), #4ade80); width: 0%; transition: 1s ease-out; }
+
+        /* Sync Indicator */
+        #syncStatus { font-size: 12px; font-weight: bold; color: var(--text-muted); margin-right: 15px; background: var(--bg-color); padding: 6px 12px; border-radius: 20px; }
+        .syncing { color: var(--warning) !important; }
+        .synced { color: var(--success) !important; }
     </style>
 </head>
 <body>
-
-    <!-- SOUND EFFECTS -->
-    <audio id="snd-pop" src="https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3"></audio>
-    <audio id="snd-msg" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"></audio>
 
     <header>
         <div class="nav-tabs">
             <button class="tab-btn active" onclick="switchTab('dashboard')"><i class="fas fa-chart-pie"></i> Dashboard</button>
             <button class="tab-btn" onclick="switchTab('tasks')"><i class="fas fa-tasks"></i> Tasks</button>
             <button class="tab-btn" onclick="switchTab('finances')"><i class="fas fa-wallet"></i> Finances</button>
-            <button class="tab-btn" onclick="switchTab('analytics')"><i class="fas fa-chart-bar"></i> Analytics</button>
             <button class="tab-btn" onclick="switchTab('goals')"><i class="fas fa-bullseye"></i> Goals</button>
         </div>
         
         <div class="profile-switcher">
-            <img src="https://ui-avatars.com/api/?name=TC&background=random" class="pfp-btn active" id="pfp-user1" onclick="switchProfile('user1')" title="the1coolpop (OKC)">
-            <img src="https://ui-avatars.com/api/?name=GO&background=random" class="pfp-btn" id="pfp-user2" onclick="switchProfile('user2')" title="goshaaaa (Kharkiv)">
+            <button class="profile-btn active" id="btn-user1" onclick="switchProfile('user1')">🇺🇸 OKC</button>
+            <button class="profile-btn" id="btn-user2" onclick="switchProfile('user2')">🇺🇦 Kharkiv</button>
         </div>
 
         <div class="controls">
             <div class="clock-widget">
-                <div class="clock-time" id="clockTime">00:00</div>
+                <div class="clock-time" id="clockTime">00:00:00</div>
                 <div class="clock-date" id="clockDate">Loading...</div>
             </div>
+            <span id="syncStatus" class="synced"><i class="fas fa-cloud"></i> Synced</span>
             <div class="level-badge">
                 <i class="fas fa-star" style="color: var(--xp-color);"></i>
                 <span class="level-text" id="levelDisplay">Lvl 1</span>
                 <div class="xp-bar-container"><div class="xp-bar-fill" id="xpBar"></div></div>
             </div>
-            <button class="icon-btn" onclick="changePFP()" title="Change Profile Picture"><i class="fas fa-camera"></i></button>
-            <button class="icon-btn" onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
+            <input type="month" id="monthSelector" onchange="changeMonth(this.value)">
+            <button onclick="toggleDarkMode()"><i class="fas fa-moon"></i></button>
         </div>
     </header>
 
     <div class="container">
         
-        <!-- DASHBOARD (V3 Style + Missed Logic) -->
+        <!-- DASHBOARD -->
         <div id="dashboard" class="page active">
             <div class="card">
                 <div class="card-header">
-                    <span><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Daily Routine</span>
-                    <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">Red = Missed</span>
+                    <span><i class="fas fa-calendar-check" style="color: var(--primary);"></i> Daily Routine & Habits</span>
+                    <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);">Red outline = Missed day</span>
                 </div>
-                <div style="overflow-x:auto;">
-                    <table class="data-table">
-                        <thead><tr><th>Habit</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th></th></tr></thead>
-                        <tbody id="habitTableBody"></tbody>
-                    </table>
-                </div>
+                <table class="data-table" style="margin-bottom: 20px;">
+                    <thead><tr><th>Habit</th><th>Sun</th><th>Mon</th><th>Tue</th><th>Wed</th><th>Thu</th><th>Fri</th><th>Sat</th><th></th></tr></thead>
+                    <tbody id="habitTableBody"></tbody>
+                </table>
                 <button class="btn-add" onclick="addHabit()">+ Add Habit</button>
             </div>
             <div class="weekly-grid" id="weeklyGrid"></div>
@@ -189,21 +183,20 @@
         <div id="tasks" class="page">
             <div class="card">
                 <div class="card-header"><i class="fas fa-list-ul" style="color: var(--primary);"></i> Master Task List</div>
-                <div style="overflow-x:auto;">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th style="width: 40px;"></th>
-                                <th>Task Name</th>
-                                <th>Category</th>
-                                <th>Due</th>
-                                <th>Status</th>
-                                <th style="width: 40px;"></th>
-                            </tr>
-                        </thead>
-                        <tbody id="taskListBody"></tbody>
-                    </table>
-                </div>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px;"></th>
+                            <th>Task Name</th>
+                            <th>Due Date</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th title="Set how often this task repeats">🔁 Repeat</th>
+                            <th style="width: 40px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="taskListBody"></tbody>
+                </table>
                 <button class="btn-add" onclick="addNewMainTask()">+ Add New Task</button>
             </div>
         </div>
@@ -211,35 +204,36 @@
         <!-- FINANCES -->
         <div id="finances" class="page">
             <div class="finance-summary">
-                <div class="fin-box"><h3>Start Bal</h3><div class="val editable" contenteditable="true" onblur="updateFinStart(this.innerText)" id="finStart">$0.00</div></div>
-                <div class="fin-box"><h3>Income</h3><div class="val positive" id="finIncTotal">$0.00</div></div>
-                <div class="fin-box"><h3>Expenses</h3><div class="val negative" id="finExpTotal">$0.00</div></div>
-                <div class="fin-box"><h3>Net Bal</h3><div class="val" id="finNetTotal">$0.00</div></div>
+                <div class="fin-box"><h3>Starting Balance</h3><div class="val editable" contenteditable="true" onfocus="startTyping()" onblur="updateFinStart(this.innerText); stopTyping()" id="finStart">$0.00</div></div>
+                <div class="fin-box"><h3>Total Income</h3><div class="val positive" id="finIncTotal">$0.00</div></div>
+                <div class="fin-box"><h3>Total Expenses</h3><div class="val negative" id="finExpTotal">$0.00</div></div>
+                <div class="fin-box"><h3>Current Net Bank</h3><div class="val" id="finNetTotal">$0.00</div></div>
             </div>
+
+            <div class="savings-goal-container">
+                <div style="display: flex; justify-content: space-between; font-weight: 600;">
+                    <span>Savings Goal: $<span class="editable" contenteditable="true" onfocus="startTyping()" onblur="updateSavingsGoal(this.innerText); stopTyping()" id="savingsGoalTarget">1000</span></span>
+                    <span id="savingsGoalPercent">0%</span>
+                </div>
+                <div class="savings-bar-bg"><div class="savings-bar-fill" id="savingsBarFill"></div></div>
+            </div>
+
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
                 <div class="card" style="margin:0;">
-                    <div class="card-header" style="color: var(--success);">Income</div>
-                    <table class="data-table"><tbody id="incomeTableBody"></tbody></table>
+                    <div class="card-header" style="color: var(--success);">Income Sources</div>
+                    <table class="data-table">
+                        <thead><tr><th>Source</th><th>Amount</th><th></th></tr></thead>
+                        <tbody id="incomeTableBody"></tbody>
+                    </table>
                     <button class="btn-add" onclick="addFinanceRow('income')">+ Add Income</button>
                 </div>
                 <div class="card" style="margin:0;">
-                    <div class="card-header" style="color: var(--danger);">Expenses</div>
-                    <table class="data-table"><tbody id="expenseTableBody"></tbody></table>
+                    <div class="card-header" style="color: var(--danger);">Expenses & Bills</div>
+                    <table class="data-table">
+                        <thead><tr><th>Source</th><th>Amount</th><th></th></tr></thead>
+                        <tbody id="expenseTableBody"></tbody>
+                    </table>
                     <button class="btn-add" onclick="addFinanceRow('expenses')">+ Add Expense</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- ANALYTICS (New) -->
-        <div id="analytics" class="page">
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
-                <div class="card">
-                    <div class="card-header">Task Status</div>
-                    <canvas id="chartStatus"></canvas>
-                </div>
-                <div class="card">
-                    <div class="card-header">Categories</div>
-                    <canvas id="chartCat"></canvas>
                 </div>
             </div>
         </div>
@@ -252,24 +246,13 @@
                 <button class="btn-add" onclick="addGoal()">+ Add Goal</button>
             </div>
         </div>
-    </div>
 
-    <!-- CHAT WIDGET -->
-    <div class="chat-btn-float" onclick="toggleChat()"><i class="fas fa-comment-dots"></i></div>
-    <div class="chat-window" id="chatWindow">
-        <div class="chat-header">
-            <span>Synced Chat</span>
-            <i class="fas fa-times" style="cursor:pointer;" onclick="toggleChat()"></i>
-        </div>
-        <div class="chat-body" id="chatBody"></div>
-        <div class="chat-input-area">
-            <input type="text" class="chat-input" id="chatInput" placeholder="Message or YouTube/Image link..." onkeypress="handleChatKey(event)">
-            <button onclick="sendChat()" style="background:transparent; border:none; color:var(--primary); font-size:18px; cursor:pointer;"><i class="fas fa-paper-plane"></i></button>
-        </div>
     </div>
 
     <script>
-        // FIREBASE KEYS
+        // ==========================================
+        // FIREBASE CONFIG
+        // ==========================================
         const firebaseConfig = {
             apiKey: "AIzaSyCDc6zQJtjM6qjFZtkNpQDI0QbZDzOpDR4",
             authDomain: "coolpopswebsite.firebaseapp.com",
@@ -280,241 +263,215 @@
             appId: "1:841625716847:web:d70b476cce6fd1f5ee659a",
             measurementId: "G-2JTX8J44FW"
         };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        
+        if (!firebase.apps.length) { firebase.initializeApp(firebaseConfig); }
         const db = firebase.database();
 
-        // LOGIC
-        const USERS = { 'user1': { name: 'the1coolpop', tz: 'America/Chicago' }, 'user2': { name: 'goshaaaa', tz: 'Europe/Kyiv' } };
         let currentProfile = 'user1';
-        let currentMonth = new Date().toISOString().slice(0, 7);
-        let appData = { habits:[], weekDays:[], taskList:[], finances:{income:[],expenses:[]}, goals:[] };
-        let settings = { xp:0, level:1, pfp:'' };
-        let isTyping = false;
-        let charts = {};
+        let currentPeriod = ""; 
+        let isTyping = false; 
 
-        // Init
-        window.onload = function() {
-            initCharts();
-            listenToData();
-            listenToChat();
-            updateClock();
-            setInterval(updateClock, 1000);
-        };
+        const getEmptyData = () => ({ settings: { darkMode: false, xp: 0, level: 1 }, months: {} });
+        const getEmptyMonth = () => ({
+            habits:[ { name: "Drink Water", days:[false, false, false, false, false, false, false] } ],
+            weekDays:[
+                { name: "Sunday", tasks: [] }, { name: "Monday", tasks:[] }, { name: "Tuesday", tasks:[] },
+                { name: "Wednesday", tasks:[] }, { name: "Thursday", tasks:[] }, { name: "Friday", tasks:[] }, { name: "Saturday", tasks:[] }
+            ],
+            taskList:[],
+            goals:[],
+            finances: { startingAmount: 0, savingsGoal: 1000, income:[], expenses:[] }
+        });
 
-        // Firebase Sync
-        function listenToData() {
-            db.ref(`profiles/${currentProfile}`).on('value', snap => {
-                if(isTyping) return;
-                const val = snap.val();
-                if(val) {
-                    settings = val.settings || settings;
-                    if(val.months && val.months[currentMonth]) appData = val.months[currentMonth];
-                    else appData = getEmptyMonth();
-                }
+        let localData = getEmptyData();
+        let appData = null; 
+
+        function updateClock() {
+            const tz = currentProfile === 'user1' ? 'America/Chicago' : 'Europe/Kyiv';
+            const now = new Date();
+            document.getElementById('clockTime').innerText = now.toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute:'2-digit', second:'2-digit' });
+            document.getElementById('clockDate').innerText = now.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' });
+        }
+        setInterval(updateClock, 1000);
+
+        function getCurrentDayIndex() {
+            const tz = currentProfile === 'user1' ? 'America/Chicago' : 'Europe/Kyiv';
+            return new Date(new Date().toLocaleString('en-US', { timeZone: tz })).getDay();
+        }
+
+        function isDateOverdue(dateString) {
+            if(!dateString) return false;
+            const tz = currentProfile === 'user1' ? 'America/Chicago' : 'Europe/Kyiv';
+            const now = new Date(new Date().toLocaleString('en-US', { timeZone: tz }));
+            now.setHours(0,0,0,0);
+            return new Date(dateString) < now;
+        }
+
+        function listenToCloud() {
+            db.ref('profiles/' + currentProfile).on('value', (snapshot) => {
+                if (isTyping) return; 
+                const data = snapshot.val();
+                if (data) localData = data;
+                else localData = getEmptyData(); 
+                applySettings();
+                ensureMonthExists(currentPeriod);
                 renderAll();
+                document.getElementById('syncStatus').className = 'synced';
             });
         }
-        function saveData() { 
-            db.ref(`profiles/${currentProfile}/settings`).set(settings);
-            db.ref(`profiles/${currentProfile}/months/${currentMonth}`).set(appData);
-        }
-        function getEmptyMonth() {
-            return {
-                habits: [{name:"New Habit", days:Array(7).fill(false)}],
-                weekDays: Array(7).fill().map((_,i) => ({name: ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][i], tasks:[]})),
-                taskList: [], finances: { income:[], expenses:[], startingAmount:0 }, goals:[]
-            };
+
+        function saveToCloud() {
+            db.ref('profiles/' + currentProfile).set(localData);
         }
 
-        function switchProfile(pid) {
-            currentProfile = pid;
-            document.querySelectorAll('.pfp-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(`pfp-${pid}`).classList.add('active');
+        function switchProfile(profileId) {
+            currentProfile = profileId;
+            document.querySelectorAll('.profile-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('btn-' + profileId).classList.add('active');
             updateClock();
-            db.ref().off(); // Stop all listeners
-            listenToData();
-            listenToChat(); // Restart chat listener
+            db.ref().off(); 
+            listenToCloud();
         }
 
-        // Render Functions
+        function initApp() {
+            const today = new Date();
+            currentPeriod = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            document.getElementById('monthSelector').value = currentPeriod;
+            listenToCloud(); 
+        }
+
+        function ensureMonthExists(monthStr) {
+            if (!localData.months) localData.months = {};
+            if (!localData.months[monthStr]) {
+                localData.months[monthStr] = getEmptyMonth();
+                saveToCloud();
+            }
+            appData = localData.months[monthStr];
+            if(!appData.finances) appData.finances = getEmptyMonth().finances;
+        }
+
+        function changeMonth(newMonthStr) {
+            if (!newMonthStr) return;
+            currentPeriod = newMonthStr;
+            ensureMonthExists(currentPeriod);
+            renderAll();
+        }
+
+        function applySettings() {
+            if (localData.settings.darkMode) document.body.classList.add('dark-mode');
+            else document.body.classList.remove('dark-mode');
+            let xpNeeded = localData.settings.level * 100;
+            document.getElementById('levelDisplay').innerText = `Lvl ${localData.settings.level}`;
+            document.getElementById('xpBar').style.width = `${(localData.settings.xp / xpNeeded) * 100}%`;
+        }
+
+        function toggleDarkMode() { localData.settings.darkMode = !localData.settings.darkMode; saveToCloud(); applySettings(); }
+        function gainXP(amount) {
+            localData.settings.xp += amount;
+            let xpNeeded = localData.settings.level * 100;
+            if (localData.settings.xp >= xpNeeded) { localData.settings.xp -= xpNeeded; localData.settings.level++; }
+            saveToCloud();
+        }
+
+        function startTyping() { isTyping = true; }
+        function stopTyping() { isTyping = false; saveToCloud(); }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
         function renderAll() {
-            updateXP();
-            if(settings.pfp) document.getElementById(`pfp-${currentProfile}`).src = settings.pfp;
-            renderHabits();
-            renderWeekly();
-            renderTasks();
+            renderDashboard();
+            renderTaskList();
             renderFinances();
             renderGoals();
-            updateCharts();
         }
 
-        function renderHabits() {
-            const dayIdx = new Date().getDay();
-            const html = (appData.habits||[]).map((h, i) => `
+        function renderDashboard() {
+            const currentDay = getCurrentDayIndex();
+            document.getElementById('habitTableBody').innerHTML = appData.habits.map((habit, hIndex) => `
                 <tr>
-                    <td><span class="editable" contenteditable="true" onfocus="isTyping=true" onblur="appData.habits[${i}].name=this.innerText; isTyping=false; saveData()">${h.name}</span></td>
-                    ${(h.days||[]).map((d, dI) => {
-                        let missed = (!d && dI < dayIdx);
-                        return `<td><input type="checkbox" class="${missed?'missed':''}" ${d?'checked':''} onchange="toggleHabit(${i},${dI})"></td>`;
+                    <td><span class="editable" contenteditable="true" onfocus="startTyping()" onblur="appData.habits[${hIndex}].name=this.innerText; stopTyping()">${habit.name}</span></td>
+                    ${habit.days.map((day, dIndex) => {
+                        let isMissed = (dIndex < currentDay) && !day;
+                        return `<td><input type="checkbox" class="${isMissed ? 'missed' : ''}" ${day ? 'checked' : ''} onchange="appData.habits[${hIndex}].days[${dIndex}]=this.checked; if(this.checked) gainXP(5); saveToCloud()"></td>`;
                     }).join('')}
-                    <td><i class="fas fa-trash" style="cursor:pointer; color:var(--text-muted);" onclick="appData.habits.splice(${i},1); saveData()"></i></td>
+                    <td><button class="btn-icon" onclick="appData.habits.splice(${hIndex}, 1); saveToCloud()"><i class="fas fa-trash"></i></button></td>
                 </tr>
             `).join('');
-            document.getElementById('habitTableBody').innerHTML = html;
+
+            document.getElementById('weeklyGrid').innerHTML = appData.weekDays.map((day, dIndex) => {
+                let isToday = dIndex === currentDay;
+                return `
+                    <div class="day-card">
+                        <div class="day-header ${isToday ? 'is-today' : ''}">${day.name}</div>
+                        <ul class="task-list-mini">${(day.tasks||[]).map((t, tIndex) => `<li><input type="checkbox" ${t.done ? 'checked' : ''} onchange="appData.weekDays[${dIndex}].tasks[${tIndex}].done=this.checked; if(this.checked) gainXP(10); saveToCloud()"><span class="task-text">${t.name}</span></li>`).join('')}</ul>
+                        <button class="btn-add" style="margin:5px;" onclick="appData.weekDays[${dIndex}].tasks.push({name:'Task', done:false}); saveToCloud()">+ Add</button>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function renderWeekly() {
-            const dayIdx = new Date().getDay();
-            const html = (appData.weekDays||[]).map((d, i) => `
-                <div class="day-card">
-                    <div class="day-header ${i===dayIdx?'is-today':''}">${d.name}</div>
-                    <ul class="task-list-mini">
-                        ${(d.tasks||[]).map((t, tI) => `
-                            <li class="${t.done?'done':''}">
-                                <input type="checkbox" ${t.done?'checked':''} onchange="toggleDayTask(${i},${tI})">
-                                <span class="task-text editable" contenteditable="true" onfocus="isTyping=true" onblur="appData.weekDays[${i}].tasks[${tI}].name=this.innerText; isTyping=false; saveData()">${t.name}</span>
-                                <i class="fas fa-times" onclick="appData.weekDays[${i}].tasks.splice(${tI},1); saveData()"></i>
-                            </li>
-                        `).join('')}
-                    </ul>
-                    <button class="btn-add" style="margin:5px; width:calc(100% - 10px); padding:5px;" onclick="addDayTask(${i})">+ Add</button>
-                </div>
-            `).join('');
-            document.getElementById('weeklyGrid').innerHTML = html;
-        }
-
-        function renderTasks() {
-            const html = (appData.taskList||[]).map((t, i) => `
-                <tr style="${t.done?'opacity:0.5':''}">
-                    <td><input type="checkbox" ${t.done?'checked':''} onchange="toggleMainTask(${i})"></td>
-                    <td><span class="editable" contenteditable="true" onfocus="isTyping=true" onblur="appData.taskList[${i}].name=this.innerText; isTyping=false; saveData()">${t.name}</span></td>
-                    <td>
-                        <select style="border:none; bg:transparent;" onchange="appData.taskList[${i}].cat=this.value; saveData()">
-                            <option value="Work" ${t.cat==='Work'?'selected':''}>💼 Work</option>
-                            <option value="Personal" ${t.cat==='Personal'?'selected':''}>🏠 Personal</option>
-                        </select>
-                    </td>
-                    <td><input type="date" value="${t.due||''}" onchange="appData.taskList[${i}].due=this.value; saveData()"></td>
-                    <td><span style="font-size:12px; font-weight:bold; color:var(--${t.done?'success':'warning'})">${t.done?'DONE':'TODO'}</span></td>
-                    <td><i class="fas fa-trash" style="cursor:pointer;" onclick="appData.taskList.splice(${i},1); saveData()"></i></td>
+        function renderTaskList() {
+            document.getElementById('taskListBody').innerHTML = appData.taskList.map((task, index) => `
+                <tr style="${task.done ? 'opacity: 0.5;' : ''}">
+                    <td><input type="checkbox" ${task.done ? 'checked' : ''} onchange="appData.taskList[${index}].done=this.checked; if(this.checked) gainXP(15); saveToCloud()"></td>
+                    <td><span class="editable" contenteditable="true" onfocus="startTyping()" onblur="appData.taskList[${index}].name=this.innerText; stopTyping()">${task.name}</span></td>
+                    <td><input type="date" value="${task.due || ''}" onchange="appData.taskList[${index}].due=this.value; saveToCloud()"></td>
+                    <td><select onchange="appData.taskList[${index}].priority=this.value; saveToCloud()"><option value="high">High</option><option value="medium">Med</option></select></td>
+                    <td><span class="status-badge s-${task.status}">${task.status}</span></td>
+                    <td><select onchange="appData.taskList[${index}].repeat=this.value; saveToCloud()"><option value="none">None</option><option value="daily">Daily</option></select></td>
+                    <td><button class="btn-icon" onclick="appData.taskList.splice(${index}, 1); saveToCloud()"><i class="fas fa-trash"></i></button></td>
                 </tr>
             `).join('');
-            document.getElementById('taskListBody').innerHTML = html;
         }
 
         function renderFinances() {
-            const f = appData.finances || {income:[], expenses:[], startingAmount:0};
+            const f = appData.finances;
             document.getElementById('finStart').innerText = f.startingAmount;
+            document.getElementById('savingsGoalTarget').innerText = f.savingsGoal;
             
-            const renderRow = (type) => (f[type]||[]).map((item, i) => `
-                <tr>
-                    <td><span class="editable" contenteditable="true" onfocus="isTyping=true" onblur="appData.finances.${type}[${i}].name=this.innerText; isTyping=false; saveData()">${item.name}</span></td>
-                    <td><span class="editable" contenteditable="true" onfocus="isTyping=true" onblur="appData.finances.${type}[${i}].amt=parseFloat(this.innerText); isTyping=false; saveData()">${item.amt}</span></td>
-                    <td><i class="fas fa-trash" onclick="appData.finances.${type}.splice(${i},1); saveData()"></i></td>
-                </tr>
-            `).join('');
+            const renderTable = (type, bodyId) => {
+                document.getElementById(bodyId).innerHTML = f[type].map((item, i) => `
+                    <tr>
+                        <td><span class="editable" contenteditable="true" onfocus="startTyping()" onblur="appData.finances.${type}[${i}].source=this.innerText; stopTyping()">${item.source}</span></td>
+                        <td>$<span class="editable" contenteditable="true" onfocus="startTyping()" onblur="appData.finances.${type}[${i}].amount=parseFloat(this.innerText); stopTyping()">${item.amount}</span></td>
+                        <td><button class="btn-icon" onclick="appData.finances.${type}.splice(${i}, 1); saveToCloud()"><i class="fas fa-trash"></i></button></td>
+                    </tr>
+                `).join('');
+            };
+            renderTable('income', 'incomeTableBody');
+            renderTable('expenses', 'expenseTableBody');
 
-            document.getElementById('incomeTableBody').innerHTML = renderRow('income');
-            document.getElementById('expenseTableBody').innerHTML = renderRow('expenses');
-
-            const inc = (f.income||[]).reduce((a,b)=>a+(b.amt||0),0);
-            const exp = (f.expenses||[]).reduce((a,b)=>a+(b.amt||0),0);
-            const net = (parseFloat(f.startingAmount)||0) + inc - exp;
+            let inc = (f.income||[]).reduce((a,b)=>a+(parseFloat(b.amount)||0),0);
+            let exp = (f.expenses||[]).reduce((a,b)=>a+(parseFloat(b.amount)||0),0);
+            document.getElementById('finIncTotal').innerText = `$${inc.toFixed(2)}`;
+            document.getElementById('finExpTotal').innerText = `$${exp.toFixed(2)}`;
+            document.getElementById('finNetTotal').innerText = `$${((parseFloat(f.startingAmount)||0) + inc - exp).toFixed(2)}`;
             
-            document.getElementById('finIncTotal').innerText = `$${inc}`;
-            document.getElementById('finExpTotal').innerText = `$${exp}`;
-            document.getElementById('finNetTotal').innerText = `$${net}`;
+            let percent = Math.min(100, Math.max(0, (((parseFloat(f.startingAmount)||0) + inc - exp) / (parseFloat(f.savingsGoal)||1)) * 100));
+            document.getElementById('savingsBarFill').style.width = `${percent}%`;
+            document.getElementById('savingsGoalPercent').innerText = `${percent.toFixed(1)}%`;
         }
 
         function renderGoals() {
-            document.getElementById('goalsTableBody').innerHTML = (appData.goals||[]).map((g,i) => `
-                <tr style="${g.done?'opacity:0.5':''}">
-                    <td><input type="checkbox" ${g.done?'checked':''} onchange="appData.goals[${i}].done=!appData.goals[${i}].done; if(appData.goals[${i}].done) gainXP(50); saveData()"></td>
-                    <td><span class="editable" contenteditable="true" onblur="appData.goals[${i}].text=this.innerText; saveData()">${g.text}</span></td>
-                    <td><i class="fas fa-trash" onclick="appData.goals.splice(${i},1); saveData()"></i></td>
+            document.getElementById('goalsTableBody').innerHTML = (appData.goals||[]).map((g, i) => `
+                <tr>
+                    <td><input type="checkbox" ${g.done ? 'checked' : ''} onchange="appData.goals[${i}].done=this.checked; if(this.checked) gainXP(50); saveToCloud()"></td>
+                    <td><span class="editable" contenteditable="true" onblur="appData.goals[${i}].text=this.innerText; saveToCloud()">${g.text}</span></td>
                 </tr>
             `).join('');
         }
 
-        // Actions
-        function playPop() { document.getElementById('snd-pop').play().catch(()=>{}); }
-        function toggleHabit(h,d) { appData.habits[h].days[d] = !appData.habits[h].days[d]; if(appData.habits[h].days[d]) gainXP(5); saveData(); playPop(); }
-        function addHabit() { appData.habits.push({name:'Habit', days:Array(7).fill(false)}); saveData(); }
-        function toggleDayTask(d,t) { appData.weekDays[d].tasks[t].done = !appData.weekDays[d].tasks[t].done; if(appData.weekDays[d].tasks[t].done) gainXP(10); saveData(); playPop(); }
-        function addDayTask(d) { appData.weekDays[d].tasks.push({name:'Task', done:false}); saveData(); }
-        function toggleMainTask(i) { appData.taskList[i].done = !appData.taskList[i].done; if(appData.taskList[i].done) gainXP(20); saveData(); playPop(); }
-        function addNewMainTask() { if(!appData.taskList) appData.taskList=[]; appData.taskList.push({name:'New Task', cat:'Personal', done:false}); saveData(); }
-        function addFinanceRow(type) { if(!appData.finances[type]) appData.finances[type]=[]; appData.finances[type].push({name:'Item', amt:0}); saveData(); }
-        function updateFinStart(val) { appData.finances.startingAmount = parseFloat(val)||0; saveData(); }
-        function addGoal() { if(!appData.goals) appData.goals=[]; appData.goals.push({text:'Goal', done:false}); saveData(); }
-
-        function gainXP(amt) { settings.xp+=amt; if(settings.xp>=settings.level*100) { settings.xp=0; settings.level++; alert("Level Up!"); } saveData(); }
-        function updateXP() { document.getElementById('levelDisplay').innerText = `Lvl ${settings.level}`; document.getElementById('xpBar').style.width = `${(settings.xp/(settings.level*100))*100}%`; }
-        function changePFP() { const url = prompt("Image URL for PFP:"); if(url) { settings.pfp=url; saveData(); } }
-        function toggleDarkMode() { document.body.classList.toggle('dark-mode'); }
-
-        // Chat
-        function toggleChat() { document.getElementById('chatWindow').classList.toggle('open'); }
-        function listenToChat() {
-            db.ref('chat').limitToLast(50).on('child_added', snap => {
-                const msg = snap.val();
-                renderMsg(msg);
-                document.getElementById('snd-msg').play().catch(()=>{});
-            });
-        }
-        function sendChat() {
-            const txt = document.getElementById('chatInput').value;
-            if(!txt) return;
-            db.ref('chat').push({ sender: currentProfile, text: txt, time: Date.now() });
-            document.getElementById('chatInput').value = '';
-        }
-        function handleChatKey(e) { if(e.key === 'Enter') sendChat(); }
-        function renderMsg(msg) {
-            const div = document.createElement('div');
-            const isMe = msg.sender === currentProfile;
-            div.className = `msg ${isMe ? 'me' : 'them'}`;
-            let content = msg.text;
-            
-            // YouTube / Image Regex
-            const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
-            const imgRegex = /(https?:\/\/.*\.(?:png|jpg|jpeg|gif))/i;
-            const ytMatch = content.match(ytRegex);
-            const imgMatch = content.match(imgRegex);
-
-            if (ytMatch) content = content.replace(ytMatch[0], `<iframe src="https://www.youtube.com/embed/${ytMatch[1]}" allowfullscreen></iframe>`);
-            else if (imgMatch) content = content.replace(imgMatch[0], `<img src="${imgMatch[0]}">`);
-
-            div.innerHTML = `<strong>${USERS[msg.sender].name}</strong><br>${content}`;
-            document.getElementById('chatBody').appendChild(div);
-            document.getElementById('chatBody').scrollTop = document.getElementById('chatBody').scrollHeight;
-        }
-
-        // Charts
-        function initCharts() {
-            const ctx1 = document.getElementById('chartStatus').getContext('2d');
-            charts.status = new Chart(ctx1, { type: 'pie', data: { labels: ['Done', 'Todo'], datasets: [{ data: [0,1], backgroundColor: ['#22c55e', '#e2e8f0'] }] } });
-            const ctx2 = document.getElementById('chartCat').getContext('2d');
-            charts.cat = new Chart(ctx2, { type: 'doughnut', data: { labels: ['Work', 'Personal'], datasets: [{ data: [1,1], backgroundColor: ['#6366f1', '#f59e0b'] }] } });
-        }
-        function updateCharts() {
-            const done = (appData.taskList||[]).filter(t=>t.done).length;
-            charts.status.data.datasets[0].data = [done, (appData.taskList||[]).length - done];
-            charts.status.update();
-        }
-
-        // Utils
-        function updateClock() {
-            const tz = USERS[currentProfile].tz;
-            const now = new Date();
-            document.getElementById('clockTime').innerText = now.toLocaleTimeString('en-US', {timeZone:tz, hour:'2-digit', minute:'2-digit'});
-            document.getElementById('clockDate').innerText = now.toLocaleDateString('en-US', {timeZone:tz, weekday:'short', month:'short', day:'numeric'});
-        }
-        function switchTab(id) {
-            document.querySelectorAll('.page').forEach(el=>el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el=>el.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            event.currentTarget.classList.add('active');
-        }
+        function addHabit() { appData.habits.push({ name: "New Habit", days:[false,false,false,false,false,false,false] }); saveToCloud(); }
+        function addFinanceRow(type) { if(!appData.finances[type]) appData.finances[type]=[]; appData.finances[type].push({ source: "New", amount: 0 }); saveToCloud(); }
+        function updateFinStart(val) { appData.finances.startingAmount = parseFloat(val) || 0; saveToCloud(); }
+        function updateSavingsGoal(val) { appData.finances.savingsGoal = parseFloat(val) || 1000; saveToCloud(); }
+        function addGoal() { appData.goals.push({ text: "New Goal", done: false }); saveToCloud(); }
+        window.onload = initApp;
     </script>
 </body>
 </html>
