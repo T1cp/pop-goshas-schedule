@@ -1919,6 +1919,15 @@ function toggleTodayReorder(){
     if(isNavReorderActive)toggleNavReorder();
     renderToday();
 }
+function moveTodayCard(idx, dir){
+    const newIdx = idx + dir;
+    if(newIdx < 0 || newIdx >= todayCardOrder.length) return;
+    const tmp = todayCardOrder[idx];
+    todayCardOrder[idx] = todayCardOrder[newIdx];
+    todayCardOrder[newIdx] = tmp;
+    localStorage.setItem('todayCardOrder', JSON.stringify(todayCardOrder));
+    renderToday();
+}
 function attachTodayDrag(){
     const cards=document.querySelectorAll('.today-card-wrap'); let dragging=null;
     cards.forEach(card=>{
@@ -1993,7 +2002,10 @@ function startTimerFromInput(){
     if(!mins||mins<=0){showToast('Enter valid minutes','error');return;}
     timerSecondsLeft=Math.round(mins*60);
     const sfx=document.getElementById('sfx-timer'); sfx.volume=0; sfx.play().then(()=>{sfx.pause();sfx.currentTime=0;sfx.volume=1;}).catch(()=>{});
-    Notification.requestPermission().then(p=>{timerNotifPerm=p;runTimerInterval();});
+    runTimerInterval();
+    if(typeof Notification!=='undefined'&&Notification.permission==='default'){
+        Notification.requestPermission().then(p=>{timerNotifPerm=p;});
+    } else if(typeof Notification!=='undefined'){timerNotifPerm=Notification.permission;}
 }
 function runTimerInterval(){
     if(osTimerInterval)clearInterval(osTimerInterval);
@@ -2603,6 +2615,39 @@ function switchProfile(id){
         document.getElementById('sidebar')?.classList.remove('open');
         document.getElementById('mobileOverlay').style.display='none';
     }
+    // Enforce read-only when viewing another user's profile
+    _applyReadOnly(id !== myIdentity);
+}
+function _applyReadOnly(readOnly){
+    // Disable all interactive controls when viewing another profile
+    document.querySelectorAll(
+        '.editable, .btn-add, .icon-btn.accent, input[type="checkbox"].today-check, ' +
+        'button.btn-add, .chat-send-btn'
+    ).forEach(el=>{
+        if(readOnly){
+            el.setAttribute('disabled','');
+            el.style.opacity='0.45';
+            el.style.pointerEvents='none';
+            el.title='Read-only: viewing '+currentProfile;
+        } else {
+            el.removeAttribute('disabled');
+            el.style.opacity='';
+            el.style.pointerEvents='';
+            el.title='';
+        }
+    });
+    // Also disable inline-onclick btn-add buttons (they have no disabled state from CSS)
+    document.querySelectorAll('button.btn-add, button[onclick*="addNewGlobalTask"], button[onclick*="addGoal"], button[onclick*="addVaultLink"], button[onclick*="addNote"], button[onclick*="addInboxItem"]').forEach(el=>{
+        if(readOnly){
+            el.setAttribute('disabled','');
+            el.style.opacity='0.45';
+            el.style.pointerEvents='none';
+        } else {
+            el.removeAttribute('disabled');
+            el.style.opacity='';
+            el.style.pointerEvents='';
+        }
+    });
 }
 
 function changeMonth(str){
@@ -2682,7 +2727,7 @@ function buildHabitsCard(todayStr){
         const streakHtml=streak>=2?`<span class="streak-badge">🔥 ${streak}</span>`:'';
         const lockId=`ghabit-${i}`;
         // Time-based countdown for habit
-        const habitTime=h.time||'';
+        const habitTime=(h.time&&!/undefined|NaN/.test(h.time))?h.time:'';
         let timeTag='';
         if(habitTime){
             const [hh,mm]=habitTime.split(':').map(Number);
@@ -2783,15 +2828,20 @@ function renderToday(){
     _buildTodayProgressStrip(todayStr);
     const grid=document.getElementById('todayCardsGrid');if(!grid)return;
     const bentoMap={'habits':'bento-tall','tasks':'bento-wide','goal':''};
-    grid.innerHTML=todayCardOrder.map(id=>`<div class="today-card-wrap ${bentoMap[id]||''}" data-card-id="${id}" ${isTodayReorderActive?'style="cursor:grab;outline:1px dashed var(--border-color);border-radius:var(--r);position:relative;"':''}>
-        ${isTodayReorderActive?`<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:10;background:var(--a);color:white;font-size:10px;padding:1px 8px;border-radius:10px;">drag to reorder</div>`:''}
+    grid.innerHTML=todayCardOrder.map((id,idx)=>`<div class="today-card-wrap ${bentoMap[id]||''}" data-card-id="${id}" ${isTodayReorderActive?'style="cursor:grab;outline:1px dashed var(--border-color);border-radius:var(--r);position:relative;"':''}>
+        ${isTodayReorderActive?`<div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);z-index:10;display:flex;align-items:center;gap:4px;">
+            <button class="today-card-move-up" data-card-idx="${idx}" title="Move up" onclick="moveTodayCard(${idx},-1)" style="background:var(--a);color:#fff;border:none;border-radius:10px;padding:1px 7px;font-size:10px;cursor:pointer;">&lt; Up</button>
+            <span style="background:var(--a);color:white;font-size:10px;padding:1px 8px;border-radius:10px;">${id}</span>
+            <button class="today-card-move-down" data-card-idx="${idx}" title="Move down" onclick="moveTodayCard(${idx},1)" style="background:var(--a);color:#fff;border:none;border-radius:10px;padding:1px 7px;font-size:10px;cursor:pointer;">Down &gt;</button>
+        </div>`:''}
         ${buildTodayCard(id)}
     </div>`).join('');
     if(isTodayReorderActive)attachTodayDrag();
+    // Re-apply read-only state after DOM rebuild
+    if(myIdentity && currentProfile !== myIdentity) _applyReadOnly(true);
 }
-function toggleTodayHabit(i,d){if(!localData.globalHabits[i])return;if(!localData.globalHabits[i].logs)localData.globalHabits[i].logs={};const cur=localData.globalHabits[i].logs[d];localData.globalHabits[i].logs[d]=!cur;if(!cur)playSound('check'); // only on check, not uncheck
-saveToCloud();renderToday();}
-function addGlobalHabit(){const el=document.getElementById('newHabitInput');if(!el)return;const v=el.value.trim();if(!v)return;if(!localData.globalHabits)localData.globalHabits=[];localData.globalHabits.push({id:Date.now(),name:v,logs:{},createdAt:Date.now()});el.value='';saveToCloud();renderToday();}
+function toggleTodayHabit(i,d){if(!localData.globalHabits[i])return;if(!localData.globalHabits[i].logs)localData.globalHabits[i].logs={};const cur=localData.globalHabits[i].logs[d];localData.globalHabits[i].logs[d]=!cur;if(!cur)playSound('check');saveToCloud();renderToday();_buildTodayProgressStrip(d);}
+function addGlobalHabit(){const el=document.getElementById('newHabitInput');if(!el)return;const v=el.value.trim();if(!v){showToast('Enter a habit name','error');return;}if(!localData.globalHabits)localData.globalHabits=[];localData.globalHabits.push({id:Date.now(),name:v,logs:{},createdAt:Date.now()});el.value='';saveToCloud();renderToday();showToast('✓ Habit added','success');}
 function deleteGlobalHabit(i){localData.globalHabits.splice(i,1);saveToCloud();renderToday();}
 
 // ============================================================
@@ -2851,6 +2901,7 @@ if(!localData.globalTasks.find(x=>x.name===t.name&&x.due===ns))
     clearTimeout(_renderAllTimer);
     renderTabOnSwitch(currentTab);
     if(currentTab!=='today') renderToday();
+    _buildTodayProgressStrip(getLocalDateStr(new Date()));
     saveToCloud(); // background save
 }
 function updateGlobalTaskName(i,v){localData.globalTasks[i].name=v;saveToCloud();}
@@ -2928,11 +2979,16 @@ function renderTasks(){
             <td><select class="editable" style="font-size:10px;" onchange="localData.globalTasks[${i}].status=this.value;localData.globalTasks[${i}].done=(this.value==='done');saveToCloud()"><option value="not-started" ${task.status==='not-started'?'selected':''}>To Do</option><option value="in-progress" ${task.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${task.status==='done'?'selected':''}>Done</option></select></td>
             <td><button class="icon-btn danger" onclick="deleteGlobalTask(${i})" style="padding:4px 7px;"><i class="fas fa-trash"></i></button></td>
         </tr>`;}).join('');
+    _afterRenderTasks();
+}
+// Re-apply read-only after task render
+function _afterRenderTasks(){
+    if(myIdentity && currentProfile !== myIdentity) _applyReadOnly(true);
 }
 function updateTaskDate(i,v){if(v&&parseInt(v.split('-')[0])<2000){showToast('Year must be 2000+','error');renderTasks();return;}localData.globalTasks[i].due=v;saveToCloud();}
-function addInboxItem(){const el=document.getElementById('inboxInput');const v=el.value.trim();if(!v)return;if(!localData.inbox)localData.inbox=[];localData.inbox.push(v);el.value='';saveToCloud();renderTasks();}
-function moveInboxToTask(i){const v=localData.inbox[i];localData.inbox.splice(i,1);localData.globalTasks.push({id:'t'+Date.now(),name:v,category:'General',due:getLocalDateStr(new Date()),time:'',priority:'medium',status:'not-started',done:false,repeat:'none',createdAt:Date.now()});saveToCloud();}
-function addNewGlobalTask(ds=''){localData.globalTasks.push({id:'t'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name:'New Task',category:'General',due:ds,time:'',priority:'medium',status:'not-started',done:false,repeat:'none',createdAt:Date.now()});saveToCloud();}
+function addInboxItem(){const el=document.getElementById('inboxInput');if(!el)return;const v=el.value.trim();if(!v)return;if(!localData.inbox)localData.inbox=[];localData.inbox.push(v);el.value='';saveToCloud();renderTasks();showToast('✓ Added to inbox','success');}
+function moveInboxToTask(i){const v=localData.inbox[i];if(!v)return;localData.inbox.splice(i,1);localData.globalTasks.push({id:'t'+Date.now(),name:v,category:'General',due:getLocalDateStr(new Date()),time:'',priority:'medium',status:'not-started',done:false,repeat:'none',createdAt:Date.now()});saveToCloud();renderTasks();showToast('✓ Moved to Master Tasks','success');}
+function addNewGlobalTask(ds=''){localData.globalTasks.push({id:'t'+Date.now()+'_'+Math.random().toString(36).slice(2,7),name:'New Task',category:'General',due:ds,time:'',priority:'medium',status:'not-started',done:false,repeat:'none',createdAt:Date.now()});saveToCloud();renderTasks();if(currentTab==='today')renderToday();}
 
 // ============================================================
 // FINANCES
@@ -3003,7 +3059,7 @@ function addCoopProgress(a){if(!localData.coopGoal)return;localData.coopGoal.pro
 function renderVault(){
     const items=localData.vault||[];const grid=document.getElementById('vaultGrid');if(!grid)return;
     grid.innerHTML=items.length===0?'<div style="color:var(--t3);text-align:center;padding:30px;grid-column:1/-1;">No resources yet.</div>':
-        items.map((v,i)=>`<div class="vault-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:7px;"><input type="text" class="editable vault-card-title" value="${esc(v.title)}" style="flex-grow:1;" placeholder="Title" onblur="localData.vault[${i}].title=this.value;saveToCloud()"><button class="icon-btn danger" style="padding:3px 6px;flex-shrink:0;" onclick="localData.vault.splice(${i},1);saveToCloud()"><i class="fas fa-trash"></i></button></div><input type="text" class="editable vault-url" value="${esc(v.url)}" style="width:100%;" placeholder="https://" onblur="localData.vault[${i}].url=this.value;saveToCloud()"><div class="vault-actions"><button class="icon-btn" onclick="navigator.clipboard.writeText(localData.vault[${i}].url);showToast('Copied!','success');" title="Copy"><i class="fas fa-copy"></i> Copy</button><a href="${esc(v.url)}" target="_blank" rel="noopener" class="icon-btn" style="text-decoration:none;"><i class="fas fa-external-link-alt"></i> Open</a></div></div>`).join('');
+        items.map((v,i)=>`<div class="vault-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:7px;"><input type="text" class="editable vault-card-title" value="${esc(v.title)}" style="flex-grow:1;" placeholder="Title" id="vault-title-${i}" oninput="localData.vault[${i}].title=this.value" onblur="localData.vault[${i}].title=this.value;saveToCloud();renderVault()"><button class="icon-btn danger" style="padding:3px 6px;flex-shrink:0;" onclick="localData.vault.splice(${i},1);saveToCloud();renderVault()"><i class="fas fa-trash"></i></button></div><input type="text" class="editable vault-url" value="${esc(v.url)}" style="width:100%;" placeholder="https://" id="vault-url-${i}" oninput="localData.vault[${i}].url=this.value" onblur="localData.vault[${i}].url=this.value;saveToCloud();renderVault()"><div class="vault-actions"><button class="icon-btn accent" style="padding:4px 10px;" onclick="localData.vault[${i}].title=document.getElementById('vault-title-${i}').value;localData.vault[${i}].url=document.getElementById('vault-url-${i}').value;saveToCloud();showToast('Saved!','success');renderVault();" title="Save resource"><i class="fas fa-save"></i> Save</button><button class="icon-btn" onclick="navigator.clipboard.writeText(localData.vault[${i}].url);showToast('Copied!','success');" title="Copy"><i class="fas fa-copy"></i> Copy</button><a href="${esc(v.url)}" target="_blank" rel="noopener" class="icon-btn" style="text-decoration:none;"><i class="fas fa-external-link-alt"></i> Open</a></div></div>`).join('');
 }
 function addVaultLink(){if(!localData.vault)localData.vault=[];localData.vault.push({id:'v'+Date.now(),title:'New Resource',url:'https://'});saveToCloud();renderVault();}
 
@@ -3193,6 +3249,16 @@ function addNote(){if(!localData.notes)localData.notes=[];localData.notes.unshif
 function deleteNote(id){localData.notes=localData.notes.filter(n=>n.id!==id);saveToCloud();renderNotes();}
 function toggleNotePin(id){const n=localData.notes.find(n=>n.id===id);if(n){n.pinned=!n.pinned;saveToCloud();}}
 function setNoteColor(id,color){const n=localData.notes.find(n=>n.id===id);if(n){n.color=color;saveToCloud();}}
+let _noteDirtyTimer=null;
+function _noteFieldDirty(id,field,val){
+    // Set isTypingLocal to prevent cloud echo from wiping in-progress edits
+    isTypingLocal=true;
+    clearTimeout(_noteDirtyTimer);
+    _noteDirtyTimer=setTimeout(()=>{
+        updateNoteField(id,field,val);
+        setTimeout(()=>{isTypingLocal=false;},1500);
+    },600);
+}
 function updateNoteField(id,field,val){const n=localData.notes.find(n=>n.id===id);if(n){n[field]=val;n.updatedAt=Date.now();isTypingLocal=true;saveToCloud();setTimeout(()=>{isTypingLocal=false;},1500);}}
 function renderNotes(){
     if(!localData.notes)localData.notes=[];
@@ -3204,8 +3270,8 @@ function renderNotes(){
     if(!notes.length){grid.innerHTML=`<div class="notes-empty"><i class="fas fa-sticky-note"></i>${q?'No notes match.':'No notes yet!'}</div>`;return;}
     // FIX: pinned class bug — was generating two class="" attributes. Now single class attribute.
     grid.innerHTML=notes.map(n=>`<div class="note-card ${n.pinned?'pinned':''}" data-color="${n.color||'default'}" data-note-id="${n.id}">
-        <textarea class="note-title" rows="1" placeholder="Title..." onblur="updateNoteField('${n.id}','title',this.value)" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'">${esc(n.title)}</textarea>
-        <textarea class="note-content" rows="4" placeholder="Start writing..." onblur="updateNoteField('${n.id}','content',this.value)">${esc(n.content)}</textarea>
+        <textarea class="note-title" rows="1" placeholder="Title..." oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';_noteFieldDirty('${n.id}','title',this.value)" onblur="updateNoteField('${n.id}','title',this.value)">${esc(n.title)}</textarea>
+        <textarea class="note-content" rows="4" placeholder="Start writing..." oninput="_noteFieldDirty('${n.id}','content',this.value)" onblur="updateNoteField('${n.id}','content',this.value)">${esc(n.content)}</textarea>
         <div class="note-footer">
             <div style="display:flex;gap:5px;">${NOTE_COLORS.map(c=>`<div class="note-color-swatch ${n.color===c?'sel':''}" style="background:${NOTE_COLOR_HEX[c]};" onclick="setNoteColor('${n.id}','${c}')"></div>`).join('')}</div>
             <div class="note-actions">
@@ -3225,7 +3291,7 @@ const CD_EMOJIS=['🎯','🚀','🎉','💼','✈️','🏆','🎮','📅','🎂
 let selectedCdEmoji='🎯';
 function buildCountdownEmojis(){const row=document.getElementById('cdEmojiRow');if(!row)return;row.innerHTML=CD_EMOJIS.map(e=>`<div class="cd-emoji-opt ${e===selectedCdEmoji?'sel':''}" onclick="selectedCdEmoji='${e}';document.querySelectorAll('.cd-emoji-opt').forEach(x=>x.classList.remove('sel'));this.classList.add('sel')">${e}</div>`).join('');}
 function showAddCountdown(){const f=document.getElementById('addCountdownForm');f.style.display=f.style.display==='none'?'block':'none';if(f.style.display==='block'){document.getElementById('cdDate').value=getLocalDateStr(new Date(Date.now()+86400000*7));buildCountdownEmojis();}}
-function saveCountdown(){const name=document.getElementById('cdName').value.trim(),date=document.getElementById('cdDate').value;if(!name||!date){showToast('Enter name and date','error');return;}if(!localData.countdowns)localData.countdowns=[];localData.countdowns.push({id:'cd_'+Date.now(),name,date,emoji:selectedCdEmoji,createdAt:Date.now()});document.getElementById('cdName').value='';document.getElementById('addCountdownForm').style.display='none';saveToCloud();}
+function saveCountdown(){const name=document.getElementById('cdName').value.trim(),date=document.getElementById('cdDate').value;if(!name||!date){showToast('Enter name and date','error');return;}if(!localData.countdowns)localData.countdowns=[];localData.countdowns.push({id:'cd_'+Date.now(),name,date,emoji:selectedCdEmoji,createdAt:Date.now()});document.getElementById('cdName').value='';document.getElementById('addCountdownForm').style.display='none';saveToCloud();renderCountdowns();}
 function deleteCountdown(id){localData.countdowns=localData.countdowns.filter(c=>c.id!==id);saveToCloud();}
 function renderCountdowns(){
     if(!localData.countdowns)localData.countdowns=[];
@@ -3234,7 +3300,7 @@ function renderCountdowns(){
     grid.innerHTML=localData.countdowns.map(cd=>{
         const target=parseDateLocal(cd.date),diff=target-new Date(),passed=diff<=0;
         let urg='';if(!passed){const days=Math.floor(diff/86400000);if(days<7)urg='urgent';else if(days<30)urg='soon';}
-        const timerHtml=passed?`<div class="cd-passed">✅ Event passed!</div>`:buildCdTimer(diff);
+        const timerHtml=passed?`<div class="cd-passed">✅ Event passed!</div>`:buildCdTimer(diff,cd.id);
         return`<div class="cd-card ${urg}" data-cd-id="${cd.id}" data-cd-date="${cd.date}">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="cd-emoji">${cd.emoji}</div><button class="icon-btn danger" style="padding:3px 7px;font-size:10px;" onclick="deleteCountdown('${cd.id}')"><i class="fas fa-trash"></i></button></div>
             <input class="cd-name" value="${esc(cd.name)}" placeholder="Event name..." onblur="updateCdName('${cd.id}',this.value)">
@@ -3244,9 +3310,9 @@ function renderCountdowns(){
     }).join('');
     initCountdownTicker();
 }
-function buildCdTimer(diff){const s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);return`<div class="cd-timer" id="cd-timer-${i}"><div class="cd-unit"><span class="cd-num">${String(d).padStart(2,'0')}</span><div class="cd-lbl">Days</div></div><div class="cd-unit"><span class="cd-num">${String(h%24).padStart(2,'0')}</span><div class="cd-lbl">Hrs</div></div><div class="cd-unit"><span class="cd-num">${String(m%60).padStart(2,'0')}</span><div class="cd-lbl">Min</div></div><div class="cd-unit"><span class="cd-num">${String(s%60).padStart(2,'0')}</span><div class="cd-lbl">Sec</div></div></div>`;}
+function buildCdTimer(diff,cdId){const s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);const tid=cdId?'cd-timer-'+cdId:'cd-timer-tmp';return`<div class="cd-timer" id="${tid}"><div class="cd-unit"><span class="cd-num">${String(d).padStart(2,'0')}</span><div class="cd-lbl">Days</div></div><div class="cd-unit"><span class="cd-num">${String(h%24).padStart(2,'0')}</span><div class="cd-lbl">Hrs</div></div><div class="cd-unit"><span class="cd-num">${String(m%60).padStart(2,'0')}</span><div class="cd-lbl">Min</div></div><div class="cd-unit"><span class="cd-num">${String(s%60).padStart(2,'0')}</span><div class="cd-lbl">Sec</div></div></div>`;}
 function updateCdName(id,name){const c=localData.countdowns.find(c=>c.id===id);if(c){c.name=name;saveToCloud();}}
-function initCountdownTicker(){if(countdownTicker)clearInterval(countdownTicker);countdownTicker=setInterval(()=>{if(currentTab!=='countdowns')return;document.querySelectorAll('.cd-card[data-cd-date]').forEach(card=>{const diff=parseDateLocal(card.dataset.cdDate)-new Date();const timerDiv=card.querySelector('.cd-timer,.cd-passed');if(!timerDiv)return;if(diff<=0){timerDiv.outerHTML='<div class="cd-passed">✅ Event passed!</div>';}else{timerDiv.outerHTML=buildCdTimer(diff);}});},1000);}
+function initCountdownTicker(){if(countdownTicker)clearInterval(countdownTicker);countdownTicker=setInterval(()=>{if(currentTab!=='countdowns')return;document.querySelectorAll('.cd-card[data-cd-date]').forEach(card=>{const diff=parseDateLocal(card.dataset.cdDate)-new Date();const timerDiv=card.querySelector('.cd-timer,.cd-passed');if(!timerDiv)return;if(diff<=0){timerDiv.outerHTML='<div class="cd-passed">✅ Event passed!</div>';}else{const cdId2=card.dataset.cdId||'';timerDiv.outerHTML=buildCdTimer(diff,cdId2);}});},1000);}
 
 // ============================================================
 // SCRATCHPAD — shared real-time via Supabase
@@ -3877,7 +3943,7 @@ function deleteGlobalTask(i){
     deletableAction(t.name.slice(0,30),()=>{
         // Undo: re-insert at original position
         localData.globalTasks.splice(copyI,0,copy);
-        renderAll(); saveToCloud();
+        renderTasks(); renderToday(); saveToCloud();
     },()=>{}); // doFn already executed above
 }
 
@@ -3890,15 +3956,32 @@ function toggleLayoutMode(){
     const lbl = document.getElementById('layoutModeLbl');
     if(lbl) lbl.textContent = isDock ? 'Sidebar' : 'Dock';
     saveLayoutPref('dockMode', isDock);
-    if(isDock) buildDock();
+    // Explicitly control visibility so only one nav mode is active at a time
+    const sidebar = document.getElementById('sidebar');
+    const dock = document.getElementById('sched-dock');
+    if(isDock){
+        if(sidebar) sidebar.style.display = 'none';
+        if(dock) dock.style.display = 'flex';
+        buildDock();
+    } else {
+        if(sidebar) sidebar.style.display = '';
+        if(dock) dock.style.display = 'none';
+    }
 }
 function applyLayoutMode(){
     const p = JSON.parse(localStorage.getItem('schedulerLayout')||'{}');
+    const sidebar = document.getElementById('sidebar');
+    const dock = document.getElementById('sched-dock');
     if(p.dockMode){
         document.body.classList.add('dock-mode');
         const lbl = document.getElementById('layoutModeLbl');
         if(lbl) lbl.textContent = 'Sidebar';
+        if(sidebar) sidebar.style.display = 'none';
+        if(dock) dock.style.display = 'flex';
         buildDock();
+    } else {
+        if(sidebar) sidebar.style.display = '';
+        if(dock) dock.style.display = 'none';
     }
 }
 
@@ -4105,7 +4188,7 @@ function openChronoRing(taskIdx, currentTime, anchorEl){
     document.addEventListener('touchend', onUp);
     overlay._cleanup = ()=>{ document.removeEventListener('mousemove',onMove); document.removeEventListener('mouseup',onUp); document.removeEventListener('touchmove',onMove); document.removeEventListener('touchend',onUp); };
 
-    window._chronoState = {hour, minute, set hour(h){hour=h;}, set minute(m){minute=m;}, update:updateChronoVisuals};
+    window._chronoState = {get hour(){return hour;}, set hour(h){hour=h;}, get minute(){return minute;}, set minute(m){minute=m;}, _hasValue:false, update:updateChronoVisuals};
 }
 
 function chronoSetTime(time){
@@ -4157,7 +4240,10 @@ function chronoConfirm(){
     const s = window._chronoState;
     if(!s) return;
     // Fixed: allow 00:00 (midnight). Only empty if user explicitly cleared.
-    const time = (s.hour !== null && s.minute !== null && s._hasValue) ? `${String(s.hour).padStart(2,'0')}:${String(s.minute||0).padStart(2,'0')}` : '';
+    const rawH = s.hour, rawM = s.minute;
+    const safeH = (typeof rawH === 'number' && !isNaN(rawH)) ? rawH : 0;
+    const safeM = (typeof rawM === 'number' && !isNaN(rawM)) ? rawM : 0;
+    const time = s._hasValue ? `${String(safeH).padStart(2,'0')}:${String(safeM).padStart(2,'0')}` : '';
     if(_chronoTarget.isHabit){
         const i = _chronoTarget.habitIdx;
         if(localData.globalHabits[i] !== undefined){
@@ -4560,6 +4646,67 @@ body.theme-light .fin-stat .val.pos { -webkit-text-fill-color: var(--gr); backgr
 body.theme-light .fin-stat .val.neg { -webkit-text-fill-color: var(--rd); background: none; }
 body.theme-light .today-mini-stat-val { -webkit-text-fill-color: var(--t1); background: none; }
 </style>
+
+
+<script id="bugfix-patch">
+// ============================================================
+// BUG FIX PATCH — Consolidated fixes applied after main script
+// ============================================================
+
+// (A) Ensure _applyReadOnly is called on initial load after identity is set
+const _origSetIdentity = setIdentity;
+window.setIdentity = function(id){
+    _origSetIdentity(id);
+    // After init, apply read-only state (should be false for own profile)
+    setTimeout(()=>{ if(typeof _applyReadOnly==='function') _applyReadOnly(false); }, 300);
+};
+
+// (B) Ensure renderVault re-applies read-only
+const _origRenderVault = renderVault;
+window.renderVault = function(){
+    _origRenderVault();
+    if(myIdentity && currentProfile !== myIdentity && typeof _applyReadOnly==='function') _applyReadOnly(true);
+};
+
+// (C) Guard: prevent any data mutation when in read-only (viewing other profile) mode
+// Wrap saveToCloud so it also blocks when currentProfile !== myIdentity
+// (already blocked inside _doSave, but extra safety)
+const _origSaveToCloud = saveToCloud;
+window.saveToCloud = function(){
+    if(myIdentity && currentProfile !== myIdentity) return;
+    _origSaveToCloud();
+};
+
+// (D) Ensure deleteCountdown re-renders
+const _origDeleteCountdown = deleteCountdown;
+window.deleteCountdown = function(id){
+    _origDeleteCountdown(id);
+    renderCountdowns();
+};
+
+// (E) On tab switch to countdowns, always re-render to pick up latest data
+const _origSwitchTab = switchTab;
+window.switchTab = function(tabId, btnEl){
+    _origSwitchTab(tabId, btnEl);
+    // Re-apply read-only after tab render
+    setTimeout(()=>{
+        if(myIdentity && currentProfile !== myIdentity && typeof _applyReadOnly==='function'){
+            _applyReadOnly(true);
+        }
+    }, 50);
+};
+
+// (F) Fix: inbox input — if somehow value isn't cleared, force it after Add
+const _origAddInboxItem = addInboxItem;
+window.addInboxItem = function(){
+    _origAddInboxItem();
+    // Double-ensure the input is cleared
+    const el = document.getElementById('inboxInput');
+    if(el) el.value = '';
+};
+
+console.log('[PATCH] Bug fix patch loaded OK');
+</script>
 
 </body>
 </html>
